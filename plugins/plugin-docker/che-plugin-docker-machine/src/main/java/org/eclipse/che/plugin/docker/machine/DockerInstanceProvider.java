@@ -19,6 +19,7 @@ import com.google.inject.Inject;
 import org.eclipse.che.api.core.NotFoundException;
 import org.eclipse.che.api.core.model.machine.Machine;
 import org.eclipse.che.api.core.model.machine.Recipe;
+import org.eclipse.che.api.core.model.machine.ServerConf;
 import org.eclipse.che.api.core.util.FileCleaner;
 import org.eclipse.che.api.core.util.LineConsumer;
 import org.eclipse.che.api.core.util.SystemInfo;
@@ -124,7 +125,7 @@ public class DockerInstanceProvider implements InstanceProvider {
         devMachineVolumes.addAll(allMachinesSystemVolumes);
         devMachineVolumes.addAll(devMachineSystemVolumes);
         this.devMachineSystemVolumes = devMachineVolumes.toArray(new String[devMachineVolumes.size()]);
-
+// todo remove labels addition, use model server conf instead, remove serverconf from machine module
         this.devMachinePortsToExpose = Maps.newHashMapWithExpectedSize(allMachinesServers.size() + devMachineServers.size());
         this.commonMachinePortsToExpose = Maps.newHashMapWithExpectedSize(allMachinesServers.size());
         this.devMachineContainerLabels = Maps.newHashMapWithExpectedSize(2 * allMachinesServers.size() + 2 * devMachineServers.size());

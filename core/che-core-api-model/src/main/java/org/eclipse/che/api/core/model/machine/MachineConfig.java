@@ -10,6 +10,9 @@
  *******************************************************************************/
 package org.eclipse.che.api.core.model.machine;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author gazarenkov
  */
@@ -39,4 +42,14 @@ public interface MachineConfig {
      * Machine limits such as RAM size.
      */
     Limits getLimits();
+
+    /**
+     * Get configuration of servers inside of machine.
+     */
+    List<? extends ServerConf> getServers();
+
+    /**
+     * Get predefined environment variables of machine.
+     */
+    Map<String, String> getEnvVariables();
 }

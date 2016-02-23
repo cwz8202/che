@@ -147,6 +147,16 @@ public class MachineImpl implements Machine {
                                    machineRuntime);
         }
 
+        public MachineImplBuilder fromMachine(Machine machine) {
+            this.envName = machine.getEnvName();
+            this.id = machine.getId();
+            this.machineConfig = machine.getConfig();
+            this.machineRuntime = machine.getRuntime();
+            this.machineStatus = machine.getStatus();
+            this.owner = machine.getOwner();
+            return this;
+        }
+
         public MachineImplBuilder setConfig(MachineConfig machineConfig) {
             this.machineConfig = machineConfig;
             return this;

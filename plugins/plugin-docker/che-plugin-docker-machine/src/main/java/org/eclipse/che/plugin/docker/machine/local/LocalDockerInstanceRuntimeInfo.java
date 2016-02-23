@@ -12,6 +12,7 @@ package org.eclipse.che.plugin.docker.machine.local;
 
 import com.google.inject.assistedinject.Assisted;
 
+import org.eclipse.che.api.core.model.machine.MachineConfig;
 import org.eclipse.che.commons.annotation.Nullable;
 import org.eclipse.che.plugin.docker.client.json.ContainerInfo;
 import org.eclipse.che.plugin.docker.machine.DockerInstanceRuntimeInfo;
@@ -27,7 +28,7 @@ import javax.inject.Named;
  * Environment variable has lower priority.
  *
  * @author Alexander Garagatyi
- * @see org.eclipse.che.plugin.docker.machine.ServerConf
+ * @see org.eclipse.che.api.core.model.machine.ServerConf
  */
 public class LocalDockerInstanceRuntimeInfo extends DockerInstanceRuntimeInfo {
     /**
@@ -38,8 +39,12 @@ public class LocalDockerInstanceRuntimeInfo extends DockerInstanceRuntimeInfo {
     @Inject
     public LocalDockerInstanceRuntimeInfo(@Assisted ContainerInfo containerInfo,
                                           @Assisted String containerHost,
+                                          @Assisted MachineConfig machineConfig,
                                           @Nullable @Named("machine.docker.local_node_host") String dockerNodeHost) {
-        super(containerInfo, dockerNodeHost != null ? dockerNodeHost :
-                             (System.getenv(CHE_DOCKER_MACHINE_HOST) != null ? System.getenv(CHE_DOCKER_MACHINE_HOST) : containerHost));
+        super(containerInfo,
+              dockerNodeHost != null ? dockerNodeHost : (System.getenv(CHE_DOCKER_MACHINE_HOST) != null ?
+                                                         System.getenv(CHE_DOCKER_MACHINE_HOST) :
+                                                         containerHost),
+              machineConfig);
     }
 }
