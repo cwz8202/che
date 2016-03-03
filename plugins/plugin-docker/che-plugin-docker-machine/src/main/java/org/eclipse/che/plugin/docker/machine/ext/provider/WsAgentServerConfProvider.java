@@ -36,7 +36,7 @@ public class WsAgentServerConfProvider implements Provider<ServerConf> {
     @Override
     public ServerConf get() {
         return new ServerConfImpl(WS_AGENT_SERVER_REFERENCE,
-                                  Integer.toString(WsAgentLauncherImpl.WS_AGENT_PORT) + "/tcp",
+                                  WsAgentLauncherImpl.WS_AGENT_PORT,
                                   apiEndpoint.getScheme());
     }
 }

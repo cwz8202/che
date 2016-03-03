@@ -45,6 +45,8 @@ public interface MachineConfig {
 
     /**
      * Get configuration of servers inside of machine.
+     *
+     * <p>Key is port/transport protocol, e.g. 8080/tcp or 100100/udp
      */
     List<? extends ServerConf> getServers();
 
