@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *   Codenvy, S.A. - initial API and implementation
+ * Codenvy, S.A. - initial API and implementation
  *******************************************************************************/
 package org.eclipse.che.api.workspace.server;
 
@@ -24,7 +24,6 @@ import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -207,7 +206,7 @@ public class DefaultWorkspaceConfigValidatorTest {
     }
 
     @Test(expectedExceptions = BadRequestException.class,
-          expectedExceptionsMessageRegExp = "Couldn't start workspace '.*' from environment '.*', environment recipe has unsupported type '.*'")
+          expectedExceptionsMessageRegExp = "Recipe of environment '.*' in workspace with name '.*' has unsupported type '.*'")
     public void shouldFailValidationIfEnvironmentRecipeTypeIsNotDocker() throws Exception {
         final WorkspaceConfigDto config = createConfig();
         config.getEnvironments()
@@ -261,11 +260,11 @@ public class DefaultWorkspaceConfigValidatorTest {
     public void shouldFailValidationIf2DevMachinesFound() throws Exception {
         final WorkspaceConfigDto config = createConfig();
         final Optional<MachineConfigDto> devMachine = config.getEnvironments()
-                                                     .get(0)
-                                                     .getMachineConfigs()
-                                                     .stream()
-                                                     .filter(MachineConfigDto::isDev)
-                                                     .findAny();
+                                                            .get(0)
+                                                            .getMachineConfigs()
+                                                            .stream()
+                                                            .filter(MachineConfigDto::isDev)
+                                                            .findAny();
         config.getEnvironments()
               .get(0)
               .getMachineConfigs()
@@ -279,7 +278,11 @@ public class DefaultWorkspaceConfigValidatorTest {
           expectedExceptionsMessageRegExp = "Environment .* contains machine with null or empty name")
     public void shouldFailValidationIfMachineNameIsNull() throws Exception {
         final WorkspaceConfigDto config = createConfig();
-        config.getEnvironments().get(0).getMachineConfigs().get(0).withName(null);
+        config.getEnvironments()
+              .get(0)
+              .getMachineConfigs()
+              .get(0)
+              .withName(null);
 
 
         wsValidator.validate(config);
@@ -289,7 +292,11 @@ public class DefaultWorkspaceConfigValidatorTest {
           expectedExceptionsMessageRegExp = "Environment .* contains machine with null or empty name")
     public void shouldFailValidationIfMachineNameIsEmpty() throws Exception {
         final WorkspaceConfigDto config = createConfig();
-        config.getEnvironments().get(0).getMachineConfigs().get(0).withName("");
+        config.getEnvironments()
+              .get(0)
+              .getMachineConfigs()
+              .get(0)
+              .withName("");
 
 
         wsValidator.validate(config);
@@ -299,7 +306,11 @@ public class DefaultWorkspaceConfigValidatorTest {
           expectedExceptionsMessageRegExp = "Environment .* contains machine without source")
     public void shouldFailValidationIfMachineSourceIsNull() throws Exception {
         final WorkspaceConfigDto config = createConfig();
-        config.getEnvironments().get(0).getMachineConfigs().get(0).withSource(null);
+        config.getEnvironments()
+              .get(0)
+              .getMachineConfigs()
+              .get(0)
+              .withSource(null);
 
 
         wsValidator.validate(config);
@@ -309,7 +320,11 @@ public class DefaultWorkspaceConfigValidatorTest {
           expectedExceptionsMessageRegExp = "Type of machine .* in environment .* is not supported. Supported value is 'docker'.")
     public void shouldFailValidationIfMachineTypeIsNull() throws Exception {
         final WorkspaceConfigDto config = createConfig();
-        config.getEnvironments().get(0).getMachineConfigs().get(0).withType(null);
+        config.getEnvironments()
+              .get(0)
+              .getMachineConfigs()
+              .get(0)
+              .withType(null);
 
 
         wsValidator.validate(config);
@@ -319,7 +334,11 @@ public class DefaultWorkspaceConfigValidatorTest {
           expectedExceptionsMessageRegExp = "Type of machine .* in environment .* is not supported. Supported value is 'docker'.")
     public void shouldFailValidationIfMachineTypeIsNotDocker() throws Exception {
         final WorkspaceConfigDto config = createConfig();
-        config.getEnvironments().get(0).getMachineConfigs().get(0).withType("compose");
+        config.getEnvironments()
+              .get(0)
+              .getMachineConfigs()
+              .get(0)
+              .withType("compose");
 
 
         wsValidator.validate(config);
@@ -329,7 +348,9 @@ public class DefaultWorkspaceConfigValidatorTest {
           expectedExceptionsMessageRegExp = "Workspace .* contains command with null or empty name")
     public void shouldFailValidationIfCommandNameIsNull() throws Exception {
         final WorkspaceConfigDto config = createConfig();
-        config.getCommands().get(0).withName(null);
+        config.getCommands()
+              .get(0)
+              .withName(null);
 
 
         wsValidator.validate(config);
@@ -339,7 +360,9 @@ public class DefaultWorkspaceConfigValidatorTest {
           expectedExceptionsMessageRegExp = "Workspace .* contains command with null or empty name")
     public void shouldFailValidationIfCommandNameIsEmpty() throws Exception {
         final WorkspaceConfigDto config = createConfig();
-        config.getCommands().get(0).withName(null);
+        config.getCommands()
+              .get(0)
+              .withName(null);
 
 
         wsValidator.validate(config);
@@ -349,7 +372,9 @@ public class DefaultWorkspaceConfigValidatorTest {
           expectedExceptionsMessageRegExp = "Command line required for command .* in workspace .*")
     public void shouldFailValidationIfCommandLineIsNull() throws Exception {
         final WorkspaceConfigDto config = createConfig();
-        config.getCommands().get(0).withCommandLine(null);
+        config.getCommands()
+              .get(0)
+              .withCommandLine(null);
 
 
         wsValidator.validate(config);
@@ -359,7 +384,125 @@ public class DefaultWorkspaceConfigValidatorTest {
           expectedExceptionsMessageRegExp = "Command line required for command .* in workspace .*")
     public void shouldFailValidationIfCommandLineIsEmpty() throws Exception {
         final WorkspaceConfigDto config = createConfig();
-        config.getCommands().get(0).withCommandLine("");
+        config.getCommands()
+              .get(0)
+              .withCommandLine("");
+
+
+        wsValidator.validate(config);
+    }
+
+    @Test(expectedExceptions = BadRequestException.class,
+          expectedExceptionsMessageRegExp = "Machine .* contains server conf with invalid port .*",
+          dataProvider = "invalidPortProvider")
+    public void shouldFailValidationIfServerConfPortIsInvalid(String invalidPort) throws Exception {
+        final WorkspaceConfigDto config = createConfig();
+        config.getEnvironments()
+              .get(0)
+              .getMachineConfigs()
+              .get(0)
+              .getServers()
+              .add(newDto(ServerConfDto.class).withPort(invalidPort));
+
+
+        wsValidator.validate(config);
+    }
+
+    @DataProvider(name = "invalidPortProvider")
+    public static Object[][] invalidPortProvider() {
+        return new Object[][] {
+                {"0"},
+                {"0123"},
+                {"012/tcp"},
+                {"8080"},
+                {"8080/pct"},
+                {"8080/pdu"},
+                {"/tcp"},
+                {"tcp"},
+                {""},
+                {"8080/tcp1"},
+                {"8080/tcpp"},
+                {"8080tcp"},
+                {"8080/tc"},
+                {"8080/ud"},
+                {"8080/udpp"},
+                {"8080/udp/"},
+                {"8080/tcp/"},
+                {"8080/tcp/udp"},
+                {"8080/tcp/tcp"},
+                {"8080/tcp/8080"},
+                {null}
+        };
+    }
+
+    @Test(expectedExceptions = BadRequestException.class,
+          expectedExceptionsMessageRegExp = "Machine .* contains server conf with invalid protocol .*",
+          dataProvider = "invalidProtocolProvider")
+    public void shouldFailValidationIfServerConfProtocolIsInvalid(String invalidProtocol) throws Exception {
+        final WorkspaceConfigDto config = createConfig();
+        config.getEnvironments()
+              .get(0)
+              .getMachineConfigs()
+              .get(0)
+              .getServers()
+              .add(newDto(ServerConfDto.class).withPort("8080/tcp")
+                                              .withProtocol(invalidProtocol));
+
+
+        wsValidator.validate(config);
+    }
+
+    @DataProvider(name = "invalidProtocolProvider")
+    public static Object[][] invalidProtocolProvider() {
+        return new Object[][] {
+                {""},
+                {"http2"},
+                {"h"},
+                {"http2s"},
+                {"httphttphttp"},
+                };
+    }
+
+    @Test(expectedExceptions = BadRequestException.class,
+          expectedExceptionsMessageRegExp = "Machine %s contains environment variable with null or empty name")
+    public void shouldFailValidationIfEnvVarNameIsNull() throws Exception {
+        final WorkspaceConfigDto config = createConfig();
+        config.getEnvironments()
+              .get(0)
+              .getMachineConfigs()
+              .get(0)
+              .getEnvVariables()
+              .put(null, "value");
+
+
+        wsValidator.validate(config);
+    }
+
+    @Test(expectedExceptions = BadRequestException.class,
+          expectedExceptionsMessageRegExp = "Machine %s contains environment variable with null or empty name")
+    public void shouldFailValidationIfEnvVarNameIsEmpty() throws Exception {
+        final WorkspaceConfigDto config = createConfig();
+        config.getEnvironments()
+              .get(0)
+              .getMachineConfigs()
+              .get(0)
+              .getEnvVariables()
+              .put("", "value");
+
+
+        wsValidator.validate(config);
+    }
+
+    @Test(expectedExceptions = BadRequestException.class,
+          expectedExceptionsMessageRegExp = "Machine %s contains environment variable with null value")
+    public void shouldFailValidationIfEnvVarValueIsNull() throws Exception {
+        final WorkspaceConfigDto config = createConfig();
+        config.getEnvironments()
+              .get(0)
+              .getMachineConfigs()
+              .get(0)
+              .getEnvVariables()
+              .put("key", null);
 
 
         wsValidator.validate(config);
@@ -369,18 +512,19 @@ public class DefaultWorkspaceConfigValidatorTest {
         final WorkspaceConfigDto workspaceConfigDto = newDto(WorkspaceConfigDto.class).withName("ws-name")
                                                                                       .withDefaultEnv("dev-env");
 
+        final List<ServerConfDto> serversConf = new ArrayList<>(Arrays.asList(newDto(ServerConfDto.class).withRef("ref1")
+                                                                                                         .withPort("8080/tcp")
+                                                                                                         .withProtocol("https"),
+                                                                              newDto(ServerConfDto.class).withRef("ref2")
+                                                                                                         .withPort("9090/udp")
+                                                                                                         .withProtocol("protocol")));
         MachineConfigDto devMachine = newDto(MachineConfigDto.class).withDev(true)
                                                                     .withName("dev-machine")
                                                                     .withType("docker")
                                                                     .withSource(newDto(MachineSourceDto.class).withLocation("location")
                                                                                                               .withType("recipe"))
-                                                                    .withServers(Arrays.asList(newDto(ServerConfDto.class).withRef("ref1")
-                                                                                                                          .withPort("8080")
-                                                                                                                          .withProtocol("https"),
-                                                                                               newDto(ServerConfDto.class).withRef("ref2")
-                                                                                                                          .withPort("9090/udp")
-                                                                                                                          .withProtocol("someprotocol")))
-                                                                    .withEnvVariables(Collections.singletonMap("key1", "value1"));
+                                                                    .withServers(serversConf)
+                                                                    .withEnvVariables(new HashMap<>(singletonMap("key1", "value1")));
         EnvironmentDto devEnv = newDto(EnvironmentDto.class).withName("dev-env")
                                                             .withMachineConfigs(new ArrayList<>(singletonList(devMachine)))
                                                             .withRecipe(null);
