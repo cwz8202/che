@@ -39,7 +39,6 @@ import static org.testng.Assert.assertEquals;
 
 @Listeners(MockitoTestNGListener.class)
 public class DockerInstanceRuntimeInfoTest {
-    //TODO
     private static final String CONTAINER_HOST  = "container-host.com";
     private static final String DEFAULT_ADDRESS = "192.168.1.1";
 
@@ -63,8 +62,6 @@ public class DockerInstanceRuntimeInfoTest {
         when(machineConfig.getServers()).thenReturn(Collections.emptyList());
         when(containerConfig.getLabels()).thenReturn(Collections.emptyMap());
     }
-
-    // todo check normalization of ports from machine config
 
     @Test
     public void shouldReturnEnvVars() throws Exception {

@@ -79,8 +79,6 @@ public class DockerInstanceProvider implements InstanceProvider {
     private final boolean                          doForcePullOnBuild;
     private final Set<String>                      supportedRecipeTypes;
     private final DockerMachineFactory             dockerMachineFactory;
-    private final Map<String, String>              devMachineContainerLabels;
-    private final Map<String, String>              commonMachineContainerLabels;
     private final Map<String, Map<String, String>> devMachinePortsToExpose;
     private final Map<String, Map<String, String>> commonMachinePortsToExpose;
     private final String[]                         devMachineSystemVolumes;
@@ -125,23 +123,15 @@ public class DockerInstanceProvider implements InstanceProvider {
         devMachineVolumes.addAll(allMachinesSystemVolumes);
         devMachineVolumes.addAll(devMachineSystemVolumes);
         this.devMachineSystemVolumes = devMachineVolumes.toArray(new String[devMachineVolumes.size()]);
-// todo remove labels addition, use model server conf instead, remove serverconf from machine module
+
         this.devMachinePortsToExpose = Maps.newHashMapWithExpectedSize(allMachinesServers.size() + devMachineServers.size());
         this.commonMachinePortsToExpose = Maps.newHashMapWithExpectedSize(allMachinesServers.size());
-        this.devMachineContainerLabels = Maps.newHashMapWithExpectedSize(2 * allMachinesServers.size() + 2 * devMachineServers.size());
-        this.commonMachineContainerLabels = Maps.newHashMapWithExpectedSize(2 * allMachinesServers.size());
         for (ServerConf serverConf : devMachineServers) {
-            devMachinePortsToExpose.put(serverConf.getPort(), Collections.<String, String>emptyMap());
-            devMachineContainerLabels.put("che:server:" + serverConf.getPort() + ":ref", serverConf.getRef());
-            devMachineContainerLabels.put("che:server:" + serverConf.getPort() + ":protocol", serverConf.getProtocol());
+            devMachinePortsToExpose.put(serverConf.getPort(), Collections.emptyMap());
         }
         for (ServerConf serverConf : allMachinesServers) {
-            commonMachinePortsToExpose.put(serverConf.getPort(), Collections.<String, String>emptyMap());
-            devMachinePortsToExpose.put(serverConf.getPort(), Collections.<String, String>emptyMap());
-            commonMachineContainerLabels.put("che:server:" + serverConf.getPort() + ":ref", serverConf.getRef());
-            devMachineContainerLabels.put("che:server:" + serverConf.getPort() + ":ref", serverConf.getRef());
-            commonMachineContainerLabels.put("che:server:" + serverConf.getPort() + ":protocol", serverConf.getProtocol());
-            devMachineContainerLabels.put("che:server:" + serverConf.getPort() + ":protocol", serverConf.getProtocol());
+            commonMachinePortsToExpose.put(serverConf.getPort(), Collections.emptyMap());
+            devMachinePortsToExpose.put(serverConf.getPort(), Collections.emptyMap());
         }
 
         allMachinesEnvVariables = filterEmptyAndNullValues(allMachinesEnvVariables);
@@ -391,12 +381,10 @@ public class DockerInstanceProvider implements InstanceProvider {
                                     LineConsumer outputConsumer)
             throws MachineException {
         try {
-            final Map<String, String> labels;
             final Map<String, Map<String, String>> portsToExpose;
             final String[] volumes;
             final String[] env;
             if (machine.getConfig().isDev()) {
-                labels = devMachineContainerLabels;
                 portsToExpose = devMachinePortsToExpose;
 
                 final String projectFolderVolume = String.format("%s:%s",
@@ -410,7 +398,6 @@ public class DockerInstanceProvider implements InstanceProvider {
                 env = ObjectArrays.concat(devMachineEnvVariables, vars, String.class);
 
             } else {
-                labels = commonMachineContainerLabels;
                 portsToExpose = commonMachinePortsToExpose;
                 volumes = commonMachineSystemVolumes;
                 env = commonMachineEnvVariables;
@@ -422,7 +409,6 @@ public class DockerInstanceProvider implements InstanceProvider {
                                                           .withMemorySwap(-1)
                                                           .withMemory((long)machine.getConfig().getLimits().getRam() * 1024 * 1024);
             final ContainerConfig config = new ContainerConfig().withImage(imageName)
-                                                                .withLabels(labels)
                                                                 .withExposedPorts(portsToExpose)
                                                                 .withHostConfig(hostConfig)
                                                                 .withEnv(env);
@@ -439,6 +425,7 @@ public class DockerInstanceProvider implements InstanceProvider {
             dockerInstanceStopDetector.startDetection(containerId, machine.getId());
 
             return dockerMachineFactory.createInstance(machine,
+                                                       internalServersConfigs,
                                                        containerId,
                                                        imageName,
                                                        node,

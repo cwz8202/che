@@ -36,7 +36,8 @@ public interface MachineRuntimeInfo {
     /**
      * Returns mapping of exposed ports to {@link Server}.
      *
-     * <p>Example:
+     * <p>Key consist of port number and transport protocol - tcp or udp with slash between these parts.
+     * <br>Example:
      * <pre>
      * {
      *     8080/tcp : {

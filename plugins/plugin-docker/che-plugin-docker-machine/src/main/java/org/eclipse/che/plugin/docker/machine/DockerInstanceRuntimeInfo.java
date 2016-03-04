@@ -74,7 +74,8 @@ public class DockerInstanceRuntimeInfo implements MachineRuntimeInfo {
     @Inject
     public DockerInstanceRuntimeInfo(@Assisted ContainerInfo containerInfo,
                                      @Assisted String containerHost,
-                                     @Assisted MachineConfig machineConfig) {
+                                     @Assisted MachineConfig machineConfig,
+                                     @Assisted List<ServerConf> internalServerConf) {
         this.info = containerInfo;
         this.containerHost = containerHost;
         // convert list to map for quick search and normalize port - add /tcp if missing
@@ -84,6 +85,7 @@ public class DockerInstanceRuntimeInfo implements MachineRuntimeInfo {
                                                                   srvConf.getPort() :
                                                                   srvConf.getPort() + "/tcp",
                                                        ServerConfImpl::new));
+        this.serversConf.putAll(internalServerConf);
     }
 
     @Override
@@ -271,6 +273,4 @@ public class DockerInstanceRuntimeInfo implements MachineRuntimeInfo {
 
         return serversConf;
     }
-
-    // todo we calculate that shit each time!!!!!!!!!! cache?
 }
