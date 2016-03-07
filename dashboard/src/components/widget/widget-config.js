@@ -49,6 +49,7 @@ import {CheSelecter} from './selecter/che-selecter.directive';
 import {CheSimpleSelecterCtrl} from './simple-selecter/che-simple-selecter.controller';
 import {CheSimpleSelecter} from './simple-selecter/che-simple-selecter.directive';
 import {CheSlider} from './slider/che-slider.directive';
+import {CheTerminal} from './terminal/che-terminal.directive';
 import {CheTextInfo} from './text-info/che-text-info.directive';
 import {CheToggleCtrl} from './toggle-button/che-toggle.controller';
 import {CheToggleButton} from './toggle-button/che-toggle-button.directive';
@@ -113,6 +114,7 @@ export class WidgetConfig {
       .directive('cheSimpleSelecter', CheSimpleSelecter)
 
       .directive('cheSlider', CheSlider)
+      .directive('cheTerminal', CheTerminal)
       .directive('cheTextInfo', CheTextInfo)
 
       .controller('CheToggleCtrl', CheToggleCtrl)

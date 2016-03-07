@@ -1,0 +1,96 @@
+$terminal-init-height = 250px
+$terminal-init-width = 500px
+
+$terminal-border-thickness = 5px
+$terminal-border-angle = 45deg
+$terminal-height = $terminal-init-height - $terminal-border-thickness
+$terminal-width = $terminal-init-width - $terminal-border-thickness
+$terminal-title-height = 17px
+$terminal-text-offset-left = 3px
+
+$output-height = $terminal-height - $terminal-title-height
+$output-padding = 3px
+
+$terminal-front-side-color = #ececec
+$terminal-side-color = #d8d8d8
+$terminal-background-color = #373737
+
+.terminal > div > div
+    float left
+.terminal > div:last-child
+    clear left
+
+.terminal
+  .top-border, .front-side
+    width $terminal-width
+
+.terminal
+  position relative
+  height $terminal-init-height
+  width $terminal-init-width
+  //opacity 0
+  //transition all 1s
+
+
+  .top-border
+    //position absolute
+    //top -($terminal-border-thickness)
+    //left 0
+    background-color $terminal-side-color
+    height $terminal-border-thickness
+    //width $terminal-width
+    transform-origin bottom left
+    transform skewX(-($terminal-border-angle))
+
+  .right-border
+    //position absolute
+    //top 0
+    //right -($terminal-border-thickness)
+    background-color $terminal-side-color
+    height $terminal-height
+    width $terminal-border-thickness
+    transform-origin top left
+    transform skewY(-($terminal-border-angle))
+
+  .front-side
+    background-color $terminal-front-side-color
+    height $terminal-height
+
+    .title
+      height $terminal-title-height
+      padding-left 8px
+      padding-top 3px
+      font-size 0.8em
+
+    .output
+      position relative
+      height ($output-height - 2 * $output-padding)
+      margin $output-padding
+      overflow auto
+
+      div
+        position absolute
+        top 0
+        left 0
+        background-color $terminal-background-color
+        width 100%
+        min-height 100%
+        padding 3px
+        line-height 10px
+
+        code
+          font-family "Droid Sans Mono", monospace;
+          font-size 0.7em
+          background-color $terminal-background-color
+          color white
+          margin 0
+          margin-bottom -3px
+          padding 0
+          word-break break-word
+
+          border none
+          border-radius 0
+
+@media (max-width: 959px)
+  .terminal
+    width 100%
