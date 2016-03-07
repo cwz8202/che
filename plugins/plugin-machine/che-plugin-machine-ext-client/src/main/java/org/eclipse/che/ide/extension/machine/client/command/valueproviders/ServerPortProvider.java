@@ -90,15 +90,16 @@ public class ServerPortProvider implements WorkspaceStartedHandler, WorkspaceSto
                 };
 
         Map<String, CommandPropertyValueProvider> providers = transformEntries(machine.getRuntime().getServers(), machineToProvider);
-        Map<String, CommandPropertyValueProvider> noTcpAliases = new HashMap<>();
+        Map<String, CommandPropertyValueProvider> providersWithNoTcpAliases = new HashMap<>();
         for (Map.Entry<String, CommandPropertyValueProvider> providerEntry : providers.entrySet()) {
             if (providerEntry.getKey().endsWith("/tcp")) {
-                noTcpAliases.put(providerEntry.getKey().substring(0, providerEntry.getKey().length() - 4), providerEntry.getValue());
+                providersWithNoTcpAliases.put(providerEntry.getKey().substring(0, providerEntry.getKey().length() - 4),
+                                              providerEntry.getValue());
             }
         }
-        providers.putAll(noTcpAliases);
+        providersWithNoTcpAliases.putAll(providers);
 
-        return providers.values();
+        return providersWithNoTcpAliases.values();
     }
 
     @Override
