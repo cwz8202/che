@@ -44,77 +44,71 @@
 </div>
 
 
+
 <md-progress-linear md-mode="indeterminate" class="projects-list-projects-progress"
                     ng-hide="createProjectCtrl.stacksInitialized"></md-progress-linear>
 
-<md-content id="create-project-content-page" md-scroll-y flex class="projects-create-project" ng-show="createProjectCtrl.stacksInitialized"
-            md-theme="maincontent-theme">
+<md-content id="create-project-content-page" md-scroll-y flex class="projects-create-project" ng-show="createProjectCtrl.stacksInitialized" md-theme="maincontent-theme">
   <div ng-show="createProjectCtrl.isCreateProjectInProgress()">
-
-
     <div id="create-project-panel" class="create-project-progress-panel">
-      <div class="create-project-progress-panel-top">
-        <div class="create-project-progress-widget-progress" layout-align="center center" class="progress-global" layout="row">
-          <md-icon ng-hide="createProjectCtrl.getCurrentProgressStep() === (createProjectCtrl.getCreationSteps().length - 1)"
-                   md-svg-src="assets/images/loader.svg" class="create-project-progress-loader-icon" aria-label="loader"></md-icon>
-        </div>
-
-        <div layout="column" class="create-project-panel-progress-title" layout-align="center center">
-          <div class="create-project-panel-progress-counter"
-               ng-show="createProjectCtrl.getCurrentProgressStep() < (createProjectCtrl.getCreationSteps().length - 1)">
-            {{createProjectCtrl.getCurrentProgressStep() + 1}} / {{createProjectCtrl.getCreationSteps().length - 1}}
+      <div layout="column">
+        <!--crane and terminals-->
+        <div layout="row">
+          <div flex="initial">
+            <!--todo-->
+            <che-loader-crane che-step=""
+                              che-steps=""
+                              che-switch-on-iteration="false">
+            </che-loader-crane>
           </div>
-          <div>{{createProjectCtrl.projectName}} :
-            {{createProjectCtrl.getCreationSteps()[createProjectCtrl.getCurrentProgressStep()].text}}
+          <div flex flex-offset="5">
+            <che-accordion ng-repeat="step in createProjectCtrl.getCreationSteps()" che-index="{{$index}}"
+                           che-current-step="{{createProjectCtrl.getCurrentProgressStep()}}">
+              <che-accordion-title>{{createProjectCtrl.getCreationSteps()[$index].text}}{{$index < createProjectCtrl.getCurrentProgressStep() ? ' ... completed' : ''}}
+              </che-accordion-title>
+              <che-accordion-body ng-show="$index>0">
+                <che-terminal che-title="{{createProjectCtrl.getCreationSteps()[$index].inProgressText}}"
+                              che-text="{{createProjectCtrl.getCreationSteps()[$index].logs}}"></che-terminal>
+              </che-accordion-body>
+            </che-accordion>
           </div>
         </div>
-      </div>
-      <div class="create-project-progress-panel-bottom">
-        <div ng-repeat="step in createProjectCtrl.getCreationSteps()">
-          <div ng-if="$index < (createProjectCtrl.getCreationSteps().length - 1)"
-               class="create-project-panel-progress-items"
-               ng-class="{'create-project-panel-progress-items-enabled' : (createProjectCtrl.getCurrentProgressStep() >= $index), 'create-project-panel-progress-items-error' : createProjectCtrl.getCreationSteps()[$index].hasError}"
-            >
-            <div layout="row" layout-align="start center">
-              <div class="create-project-panel-progress-item-number"
-                   ng-class="{'create-project-panel-progress-item-number-in-progress' : (createProjectCtrl.getCurrentProgressStep() === $index && !createProjectCtrl.getCreationSteps()[$index].hasError)}">
-                {{$index + 1}}
+        <!--bottom bar-->
+        <che-loader-bottom-bar>
+          <div layout="row">
+            <div flex="50">
+              <!--todo-->
+              <!--<div layout="column" layout-align="end start">-->
+              <!--<span ng-click="backToDashboard()" class="return-link">&larr; Back to Dashboard</span>-->
+              <!--</div>-->
+            </div>
+            <div flex="50" layout="column" layout-align="start end">
+              <div layout="row"
+                   ng-show="createProjectCtrl.getCurrentProgressStep() === (createProjectCtrl.getCreationSteps().length - 1)">
+                <div layout="column" flex layout-align="start start">
+                  <che-button-notice che-button-title="Add another project"
+                                     ng-click="createProjectCtrl.resetCreateNewProject()"></che-button-notice>
+                </div>
+                &nbsp;
+                <div layout="column" flex layout-align="start end">
+                  <che-button-primary ng-href="{{createProjectCtrl.getIDELink()}}"
+                                      ng-click="createProjectCtrl.resetCreateNewProject()"
+                                      class="che-hover create-project-details-arrow"
+                                      che-button-icon="fa fa-chevron-circle-right"
+                                      che-button-title="Open project in IDE"></che-button-primary>
+                </div>
               </div>
-              <div flex>{{createProjectCtrl.getStepText($index)}}</div>
-              <che-button-danger ng-show="createProjectCtrl.getCreationSteps()[$index].hasError"
-                                 che-button-title="Retry" ng-click="createProjectCtrl.resetCreateProgress()"></che-button-danger>
+              <div layout="column" layout-align="end end"
+                   ng-show="createProjectCtrl.getCreationSteps()[$index].hasError">
+                <che-button-danger che-button-title="Retry"
+                                   ng-click="createProjectCtrl.resetCreateProgress()"></che-button-danger>
+              <span class="error-logs-link"
+                    ng-click="downloadLogs(createProjectCtrl.getCreationSteps()[createProjectCtrl.getCurrentProgressStep()].logs)">Problem? download logs</span>
+              </div>
             </div>
           </div>
-          <div ng-if="$index < (createProjectCtrl.getCreationSteps().length - 1)" layout="row">
-            <div
-              ng-class="{'create-project-panel-progress-item-link-enabled' : (createProjectCtrl.getCurrentProgressStep() > $index), 'create-project-panel-progress-item-link-error' : createProjectCtrl.getCreationSteps()[$index].hasError}"
-              class="create-project-panel-progress-item-link">&nbsp;</div>
-            <textarea che-auto-scroll ng-show="createProjectCtrl.getCreationSteps()[$index].logs.length > 0" flex
-                      class="create-project-panel-progress-item-output" rows="5"
-                      ng-model="createProjectCtrl.getCreationSteps()[$index].logs"></textarea>
-          </div>
-        </div>
-        <div
-          ng-class="{'create-project-panel-progress-lastitem-enabled' : (createProjectCtrl.getCurrentProgressStep() === (createProjectCtrl.getCreationSteps().length - 1)), 'create-project-panel-progress-lastitem-error' : createProjectCtrl.getCreationSteps()[$index].hasError}"
-          class="create-project-panel-progress-lastitem" layout="row">
-          <div layout="column" flex layout-align="start start">
-            <che-button-notice ng-show="createProjectCtrl.getCurrentProgressStep() === (createProjectCtrl.getCreationSteps().length - 1)"
-                               che-button-title="Add another project"
-                               ng-click="createProjectCtrl.resetCreateNewProject()"></che-button-notice>
-          </div>
-          &nbsp;
-          <div layout="column" flex layout-align="start end">
-            <che-button-primary ng-show="createProjectCtrl.getCurrentProgressStep() === (createProjectCtrl.getCreationSteps().length - 1)"
-                                ng-href="{{createProjectCtrl.getIDELink()}}"
-                                ng-click="createProjectCtrl.resetCreateNewProject()"
-                                class="che-hover create-project-details-arrow"
-                                che-button-icon="fa fa-chevron-circle-right"
-                                che-button-title="Open project in IDE"></che-button-primary>
-          </div>
-        </div>
+        </che-loader-bottom-bar>
       </div>
-
-
     </div>
   </div>
 
