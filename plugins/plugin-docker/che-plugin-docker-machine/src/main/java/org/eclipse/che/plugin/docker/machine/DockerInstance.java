@@ -117,6 +117,7 @@ public class DockerInstance extends AbstractInstance {
 
     @Override
     public MachineRuntimeInfoImpl getRuntime() {
+        // if runtime info is not evaluated yet
         if (machineRuntime == null) {
             try {
                 final ContainerInfo containerInfo = docker.inspectContainer(container);

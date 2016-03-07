@@ -81,6 +81,7 @@ public interface DockerMachineFactory {
      *
      * @param containerInfo description of docker container
      * @param containerHost host where docker container is placed
+     * @param machineConfig config of machine
      */
     DockerInstanceRuntimeInfo createMetadata(@Assisted ContainerInfo containerInfo,
                                              @Assisted String containerHost,

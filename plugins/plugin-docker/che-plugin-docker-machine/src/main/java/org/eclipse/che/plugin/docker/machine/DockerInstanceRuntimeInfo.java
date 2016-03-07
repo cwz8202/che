@@ -21,12 +21,14 @@ import org.eclipse.che.plugin.docker.client.json.ContainerInfo;
 import org.eclipse.che.plugin.docker.client.json.PortBinding;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -75,17 +77,19 @@ public class DockerInstanceRuntimeInfo implements MachineRuntimeInfo {
     public DockerInstanceRuntimeInfo(@Assisted ContainerInfo containerInfo,
                                      @Assisted String containerHost,
                                      @Assisted MachineConfig machineConfig,
-                                     @Assisted List<ServerConf> internalServerConf) {
+                                     @Named("machine.docker.dev_machine.machine_servers") Set<ServerConf> devMachineSystemServers,
+                                     @Named("machine.docker.machine_servers") Set<ServerConf> allMachinesSystemServers) {
         this.info = containerInfo;
         this.containerHost = containerHost;
+        Stream<ServerConf> confStream = Stream.concat(machineConfig.getServers().stream(), allMachinesSystemServers.stream());
+        if (machineConfig.isDev()) {
+            confStream = Stream.concat(confStream, devMachineSystemServers.stream());
+        }
         // convert list to map for quick search and normalize port - add /tcp if missing
-        this.serversConf = machineConfig.getServers()
-                                        .stream()
-                                        .collect(toMap(srvConf -> srvConf.getPort().contains("/") ?
-                                                                  srvConf.getPort() :
-                                                                  srvConf.getPort() + "/tcp",
-                                                       ServerConfImpl::new));
-        this.serversConf.putAll(internalServerConf);
+        this.serversConf = confStream.collect(toMap(srvConf -> srvConf.getPort().contains("/") ?
+                                                               srvConf.getPort() :
+                                                               srvConf.getPort() + "/tcp",
+                                                    ServerConfImpl::new));
     }
 
     @Override

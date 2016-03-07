@@ -425,7 +425,6 @@ public class DockerInstanceProvider implements InstanceProvider {
             dockerInstanceStopDetector.startDetection(containerId, machine.getId());
 
             return dockerMachineFactory.createInstance(machine,
-                                                       internalServersConfigs,
                                                        containerId,
                                                        imageName,
                                                        node,

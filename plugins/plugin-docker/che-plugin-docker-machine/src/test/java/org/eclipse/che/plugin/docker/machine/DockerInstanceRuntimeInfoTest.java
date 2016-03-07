@@ -11,6 +11,7 @@
 package org.eclipse.che.plugin.docker.machine;
 
 import org.eclipse.che.api.core.model.machine.MachineConfig;
+import org.eclipse.che.api.core.model.machine.ServerConf;
 import org.eclipse.che.api.machine.server.model.impl.ServerConfImpl;
 import org.eclipse.che.api.machine.server.model.impl.ServerImpl;
 import org.eclipse.che.plugin.docker.client.json.ContainerConfig;
@@ -26,8 +27,10 @@ import org.testng.annotations.Test;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.eclipse.che.plugin.docker.machine.DockerInstanceRuntimeInfo.SERVER_CONF_LABEL_PREFIX;
@@ -55,7 +58,11 @@ public class DockerInstanceRuntimeInfoTest {
 
     @BeforeMethod
     public void setUp() {
-        runtimeInfo = new DockerInstanceRuntimeInfo(containerInfo, CONTAINER_HOST, machineConfig);
+        runtimeInfo = new DockerInstanceRuntimeInfo(containerInfo,
+                                                    CONTAINER_HOST,
+                                                    machineConfig,
+                                                    Collections.emptySet(),
+                                                    Collections.emptySet());
 
         when(containerInfo.getConfig()).thenReturn(containerConfig);
         when(containerInfo.getNetworkSettings()).thenReturn(networkSettings);
@@ -184,7 +191,11 @@ public class DockerInstanceRuntimeInfoTest {
         serversConfigs.add(new ServerConfImpl("myserv1-tftp", "8080/udp", "tftp"));
         serversConfigs.add(new ServerConfImpl("myserv2", "100100/udp", "dhcp"));
         serversConfigs.add(new ServerConfImpl(null, "8000/tcp", "tcp"));
-        runtimeInfo = new DockerInstanceRuntimeInfo(containerInfo, CONTAINER_HOST, machineConfig);
+        runtimeInfo = new DockerInstanceRuntimeInfo(containerInfo,
+                                                    CONTAINER_HOST,
+                                                    machineConfig,
+                                                    Collections.emptySet(),
+                                                    Collections.emptySet());
 
         // when
         final Map<String, ServerImpl> servers = runtimeInfo.getServers();
@@ -217,7 +228,11 @@ public class DockerInstanceRuntimeInfoTest {
                                                                          .withHostPort("32102")));
         serversConfigs.add(new ServerConfImpl("myserv1", "8080", "http"));
         serversConfigs.add(new ServerConfImpl("myserv1-tftp", "8080/udp", "tftp"));
-        runtimeInfo = new DockerInstanceRuntimeInfo(containerInfo, CONTAINER_HOST, machineConfig);
+        runtimeInfo = new DockerInstanceRuntimeInfo(containerInfo,
+                                                    CONTAINER_HOST,
+                                                    machineConfig,
+                                                    Collections.emptySet(),
+                                                    Collections.emptySet());
 
         // when
         final Map<String, ServerImpl> servers = runtimeInfo.getServers();
@@ -234,7 +249,11 @@ public class DockerInstanceRuntimeInfoTest {
     @Test
     public void shouldAddRefAndUrlToServerFromLabels() throws Exception {
         // given
-        runtimeInfo = new DockerInstanceRuntimeInfo(containerInfo, CONTAINER_HOST, machineConfig);
+        runtimeInfo = new DockerInstanceRuntimeInfo(containerInfo,
+                                                    CONTAINER_HOST,
+                                                    machineConfig,
+                                                    Collections.emptySet(),
+                                                    Collections.emptySet());
         Map<String, List<PortBinding>> ports = new HashMap<>();
         when(networkSettings.getPorts()).thenReturn(ports);
         Map<String, String> labels = new HashMap<>();
@@ -276,7 +295,11 @@ public class DockerInstanceRuntimeInfoTest {
     @Test
     public void shouldAllowToUsePortFromDockerLabelsWithoutTransportProtocol() throws Exception {
         // given
-        runtimeInfo = new DockerInstanceRuntimeInfo(containerInfo, CONTAINER_HOST, machineConfig);
+        runtimeInfo = new DockerInstanceRuntimeInfo(containerInfo,
+                                                    CONTAINER_HOST,
+                                                    machineConfig,
+                                                    Collections.emptySet(),
+                                                    Collections.emptySet());
         Map<String, List<PortBinding>> ports = new HashMap<>();
         when(networkSettings.getPorts()).thenReturn(ports);
         Map<String, String> labels = new HashMap<>();
@@ -334,7 +357,11 @@ public class DockerInstanceRuntimeInfoTest {
         labels.put(SERVER_CONF_LABEL_PREFIX + "100100/udp" + SERVER_CONF_LABEL_PROTOCOL_SUFFIX, "dhcp");
         serversConfigs.add(new ServerConfImpl("myserv1conf", "8080/tcp", "http"));
         serversConfigs.add(new ServerConfImpl(null, "8080/udp", null));
-        runtimeInfo = new DockerInstanceRuntimeInfo(containerInfo, CONTAINER_HOST, machineConfig);
+        runtimeInfo = new DockerInstanceRuntimeInfo(containerInfo,
+                                                    CONTAINER_HOST,
+                                                    machineConfig,
+                                                    Collections.emptySet(),
+                                                    Collections.emptySet());
 
         // when
         final Map<String, ServerImpl> servers = runtimeInfo.getServers();
@@ -350,4 +377,95 @@ public class DockerInstanceRuntimeInfoTest {
                                                              CONTAINER_HOST + ":32102",
                                                              null));
     }
+
+    @Test
+    public void shouldAddOnlyCommonSystemServersConfigToNonDevMachine() throws Exception {
+        // given
+        Map<String, List<PortBinding>> ports = new HashMap<>();
+        when(networkSettings.getPorts()).thenReturn(ports);
+        ports.put("4301/tcp", Collections.singletonList(new PortBinding().withHostIp(DEFAULT_ADDRESS)
+                                                                         .withHostPort("32100")));
+        ports.put("4302/udp", Collections.singletonList(new PortBinding().withHostIp(DEFAULT_ADDRESS)
+                                                                           .withHostPort("32101")));
+        ports.put("4301/udp", Collections.singletonList(new PortBinding().withHostIp(DEFAULT_ADDRESS)
+                                                                         .withHostPort("32102")));
+        // add user defined server
+        ports.put("4305/tcp", Collections.singletonList(new PortBinding().withHostIp(DEFAULT_ADDRESS)
+                                                                         .withHostPort("32103")));
+        Set<ServerConf> commonSystemServersConfigs = new HashSet<>();
+        commonSystemServersConfigs.add(new ServerConfImpl("sysServer1-tcp", "4301/tcp", "http"));
+        commonSystemServersConfigs.add(new ServerConfImpl("sysServer2-udp", "4302/udp", "dhcp"));
+        commonSystemServersConfigs.add(new ServerConfImpl("sysServer1-udp", "4301/udp", null));
+        Set<ServerConf> devSystemServersConfigs = new HashSet<>();
+        devSystemServersConfigs.add(new ServerConfImpl("devSysServer1-tcp", "4305/tcp", "http"));
+        when(machineConfig.isDev()).thenReturn(false);
+        runtimeInfo = new DockerInstanceRuntimeInfo(containerInfo,
+                                                    CONTAINER_HOST,
+                                                    machineConfig,
+                                                    devSystemServersConfigs,
+                                                    commonSystemServersConfigs);
+
+        // when
+        final Map<String, ServerImpl> servers = runtimeInfo.getServers();
+
+        // then
+        assertEquals(servers.get("4301/tcp"), new ServerImpl("sysServer1-tcp",
+                                                             CONTAINER_HOST + ":32100",
+                                                             "http://" + CONTAINER_HOST + ":32100"));
+        assertEquals(servers.get("4302/udp"), new ServerImpl("sysServer2-udp",
+                                                               CONTAINER_HOST + ":32101",
+                                                               "dhcp://" + CONTAINER_HOST + ":32101"));
+        assertEquals(servers.get("4301/udp"), new ServerImpl("sysServer1-udp",
+                                                             CONTAINER_HOST + ":32102",
+                                                             null));
+        assertEquals(servers.get("4305/tcp"), new ServerImpl("Server-4305-tcp",
+                                                             CONTAINER_HOST + ":32103",
+                                                             null));
+    }
+
+    @Test
+    public void shouldAddCommonAndDevSystemServersConfigToDevMachine() throws Exception {
+        // given
+        Map<String, List<PortBinding>> ports = new HashMap<>();
+        when(networkSettings.getPorts()).thenReturn(ports);
+        ports.put("4301/tcp", Collections.singletonList(new PortBinding().withHostIp(DEFAULT_ADDRESS)
+                                                                         .withHostPort("32100")));
+        ports.put("4302/udp", Collections.singletonList(new PortBinding().withHostIp(DEFAULT_ADDRESS)
+                                                                         .withHostPort("32101")));
+        ports.put("4305/tcp", Collections.singletonList(new PortBinding().withHostIp(DEFAULT_ADDRESS)
+                                                                         .withHostPort("32102")));
+        ports.put("4305/udp", Collections.singletonList(new PortBinding().withHostIp(DEFAULT_ADDRESS)
+                                                                         .withHostPort("32103")));
+        Set<ServerConf> commonSystemServersConfigs = new HashSet<>();
+        commonSystemServersConfigs.add(new ServerConfImpl("sysServer1-tcp", "4301/tcp", "http"));
+        commonSystemServersConfigs.add(new ServerConfImpl("sysServer2-udp", "4302/udp", "dhcp"));
+        Set<ServerConf> devSystemServersConfigs = new HashSet<>();
+        devSystemServersConfigs.add(new ServerConfImpl("devSysServer1-tcp", "4305/tcp", "http"));
+        devSystemServersConfigs.add(new ServerConfImpl("devSysServer1-udp", "4305/udp", null));
+        when(machineConfig.isDev()).thenReturn(true);
+        runtimeInfo = new DockerInstanceRuntimeInfo(containerInfo,
+                                                    CONTAINER_HOST,
+                                                    machineConfig,
+                                                    devSystemServersConfigs,
+                                                    commonSystemServersConfigs);
+
+        // when
+        final Map<String, ServerImpl> servers = runtimeInfo.getServers();
+
+        // then
+        assertEquals(servers.get("4301/tcp"), new ServerImpl("sysServer1-tcp",
+                                                             CONTAINER_HOST + ":32100",
+                                                             "http://" + CONTAINER_HOST + ":32100"));
+        assertEquals(servers.get("4302/udp"), new ServerImpl("sysServer2-udp",
+                                                             CONTAINER_HOST + ":32101",
+                                                             "dhcp://" + CONTAINER_HOST + ":32101"));
+        assertEquals(servers.get("4305/tcp"), new ServerImpl("devSysServer1-tcp",
+                                                             CONTAINER_HOST + ":32102",
+                                                             "http://" + CONTAINER_HOST + ":32102"));
+        assertEquals(servers.get("4305/udp"), new ServerImpl("devSysServer1-udp",
+                                                             CONTAINER_HOST + ":32103",
+                                                             null));
+    }
+
+
 }

@@ -390,15 +390,6 @@ public class DockerInstanceProviderTest {
     }
 
     @Test
-    public void shouldAddInternalCommonServersConfigsToRegularMachine() throws Exception {
-        !!!
-    }
-
-    @Test
-    public void shouldAddInternalCommonAndDevServersConfigsToDevMachine() throws Exception {
-    }
-
-    @Test
     public void shouldExposeCommonAndDevPortsToContainerOnDevInstanceCreationFromRecipe() throws Exception {
         Map<String, Map<String, String>> expectedExposedPorts = new HashMap<>();
         final Set<ServerConf> commonServers = new HashSet<>(asList(new ServerConfImpl("reference1", "8080", "http"),
