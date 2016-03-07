@@ -40,6 +40,7 @@ import {CheList} from './list/che-list.directive';
 import {CheListItem} from './list/che-list-item.directive';
 import {CheListTitle} from './list/che-list-title.directive';
 import {CheListItemChecked} from './list/che-list-item-checked.directive';
+import {CheLoaderCrane} from './loader/che-crane.directive';
 import {ChePanelCtrl} from './panel/che-panel.controller';
 import {ChePanel} from './panel/che-panel.directive';
 import {CheSearch} from './search/che-search.directive';
@@ -100,6 +101,7 @@ export class WidgetConfig {
       .directive('cheList', CheList)
       .directive('cheListItem', CheListItem)
 
+      .directive('cheLoaderCrane', CheLoaderCrane)
       .controller('ChePanelCtrl', ChePanelCtrl)
       .directive('chePanel', ChePanel)
 
