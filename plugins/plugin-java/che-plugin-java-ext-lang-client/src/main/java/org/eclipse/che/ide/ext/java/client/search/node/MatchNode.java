@@ -22,6 +22,7 @@ import org.eclipse.che.api.promises.client.Promise;
 import org.eclipse.che.commons.annotation.Nullable;
 import org.eclipse.che.ide.api.app.AppContext;
 import org.eclipse.che.ide.api.editor.EditorAgent;
+import org.eclipse.che.ide.api.editor.EditorAgent.OpenEditorCallback;
 import org.eclipse.che.ide.api.editor.EditorPartPresenter;
 import org.eclipse.che.ide.api.project.node.HasAction;
 import org.eclipse.che.ide.api.project.node.HasStorablePath;
@@ -190,14 +191,19 @@ public class MatchNode extends AbstractPresentationNode implements HasAction {
     }
 
     private void openFile(VirtualFile result) {
-        editorAgent.openEditor(result, new EditorAgent.OpenEditorCallback() {
+        editorAgent.openEditor(result, new OpenEditorCallback() {
             @Override
             public void onEditorOpened(EditorPartPresenter editor) {
                 fileOpened(editor);
             }
 
             @Override
-            public void onEditorActivated(EditorPartPresenter editor) { }
+            public void onEditorActivated(EditorPartPresenter editor) {
+            }
+
+            @Override
+            public void onFailedInitialization() {
+            }
         });
     }
 

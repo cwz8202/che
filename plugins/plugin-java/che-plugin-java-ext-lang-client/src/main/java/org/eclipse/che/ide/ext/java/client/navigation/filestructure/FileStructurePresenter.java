@@ -29,6 +29,7 @@ import org.eclipse.che.ide.api.project.tree.VirtualFile;
 import org.eclipse.che.ide.ext.java.client.navigation.service.JavaNavigationService;
 import org.eclipse.che.ide.ext.java.client.project.node.JavaNodeManager;
 import org.eclipse.che.ide.ext.java.client.projecttree.JavaSourceFolderUtil;
+import org.eclipse.che.ide.api.editor.EditorAgent.OpenEditorCallback;
 import org.eclipse.che.ide.ext.java.shared.dto.Region;
 import org.eclipse.che.ide.ext.java.shared.dto.model.CompilationUnit;
 import org.eclipse.che.ide.ext.java.shared.dto.model.Member;
@@ -150,7 +151,7 @@ public class FileStructurePresenter implements FileStructure.ActionDelegate {
     }
 
     private void openFile(VirtualFile result, final Member member) {
-        editorAgent.openEditor(result, new EditorAgent.OpenEditorCallback() {
+        editorAgent.openEditor(result, new OpenEditorCallback() {
             @Override
             public void onEditorOpened(EditorPartPresenter editor) {
                 setCursor(editor, member.getFileRegion().getOffset());
@@ -158,6 +159,10 @@ public class FileStructurePresenter implements FileStructure.ActionDelegate {
 
             @Override
             public void onEditorActivated(EditorPartPresenter editor) {
+            }
+
+            @Override
+            public void onFailedInitialization() {
             }
         });
     }

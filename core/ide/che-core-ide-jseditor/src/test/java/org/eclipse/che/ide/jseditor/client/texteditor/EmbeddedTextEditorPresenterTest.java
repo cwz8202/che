@@ -211,7 +211,7 @@ public class EmbeddedTextEditorPresenterTest {
 
         embeddedTextEditorPresenter.injectAsyncLoader(loaderFactory);
         embeddedTextEditorPresenter.initialize(configuration, notificationManager);
-        embeddedTextEditorPresenter.init(editorInput);
+        embeddedTextEditorPresenter.init(editorInput, null);
 
         verify(documentStorage).getDocument(any(VirtualFile.class), callBackCaptor.capture());
 

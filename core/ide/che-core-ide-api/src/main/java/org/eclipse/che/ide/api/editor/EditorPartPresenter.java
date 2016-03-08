@@ -10,8 +10,10 @@
  *******************************************************************************/
 package org.eclipse.che.ide.api.editor;
 
-import org.eclipse.che.ide.api.parts.PartPresenter;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+
+import org.eclipse.che.ide.api.editor.EditorAgent.OpenEditorCallback;
+import org.eclipse.che.ide.api.parts.PartPresenter;
 
 import javax.validation.constraints.NotNull;
 
@@ -54,7 +56,7 @@ public interface EditorPartPresenter extends PartPresenter {
      * @throws EditorInitException
      *         if this editor was not initialized successfully
      */
-    void init(@NotNull EditorInput input) throws EditorInitException;
+    void init(@NotNull EditorInput input, OpenEditorCallback callback);
 
     /**
      * Returns the input for this editor.  If this value changes the part must
