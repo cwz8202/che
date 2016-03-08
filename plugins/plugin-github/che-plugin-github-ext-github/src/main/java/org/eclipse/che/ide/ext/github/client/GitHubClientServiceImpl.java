@@ -240,4 +240,12 @@ public class GitHubClientServiceImpl implements GitHubClientService {
         String url = baseUrl + SSH_GEN;
         asyncRequestFactory.createPostRequest(url, null).loader(loader).send(callback);
     }
+
+    @Override
+    public Promise<GitHubPullRequest> updatePullRequest(String user,
+                                                        String repository,
+                                                        String pullRequestId,
+                                                        GitHubPullRequestCreationInput pullRequest) {
+        return null;
+    }
 }

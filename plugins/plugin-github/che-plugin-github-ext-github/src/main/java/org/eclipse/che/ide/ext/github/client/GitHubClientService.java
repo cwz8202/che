@@ -275,4 +275,9 @@ public interface GitHubClientService {
      *         callback called when operation is done.
      */
     void updatePublicKey(@NotNull AsyncRequestCallback<Void> callback);
+
+    Promise<GitHubPullRequest> updatePullRequest(String user,
+                                                 String repository,
+                                                 String pullRequestId,
+                                                 GitHubPullRequestCreationInput pullRequest);
 }

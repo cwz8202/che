@@ -112,4 +112,15 @@ public interface GitHubPullRequest {
     void setMergeable(boolean mergeable);
 
     GitHubPullRequest withMergeable(boolean mergeable);
+
+    /**
+     * Get pull request state.
+     *
+     * @return {@link String} state
+     */
+    String getBody();
+
+    void setBody(String body);
+
+    GitHubPullRequest withBody(String body);
 }
