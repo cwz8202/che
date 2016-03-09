@@ -326,4 +326,10 @@ public interface JavaLocalizationConstant extends Messages {
 
     @Key("rename.with.warnings")
     String renameWithWarnings();
+
+    @Key("unable.to.save.java.compiler.errors.warnings.settings")
+    String unableToSaveJavaCompilerErrorsWarningsSettings();
+
+    @Key("unable.to.load.java.compiler.errors.warnings.settings")
+    String unableToLoadJavaCompilerErrorsWarningsSettings();
 }

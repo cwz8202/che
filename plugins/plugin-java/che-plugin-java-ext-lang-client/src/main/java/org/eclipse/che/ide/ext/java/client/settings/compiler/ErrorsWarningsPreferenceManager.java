@@ -8,11 +8,10 @@
  * Contributors:
  *   Codenvy, S.A. - initial API and implementation
  *******************************************************************************/
-package org.eclipse.che.ide.preferences;
+package org.eclipse.che.ide.ext.java.client.settings.compiler;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import com.google.inject.Singleton;
 
 import org.eclipse.che.api.promises.client.Function;
 import org.eclipse.che.api.promises.client.FunctionException;
@@ -21,54 +20,47 @@ import org.eclipse.che.api.promises.client.OperationException;
 import org.eclipse.che.api.promises.client.Promise;
 import org.eclipse.che.api.promises.client.PromiseError;
 import org.eclipse.che.api.promises.client.js.Promises;
-import org.eclipse.che.api.user.gwt.client.UserProfileServiceClient;
 import org.eclipse.che.commons.annotation.Nullable;
-import org.eclipse.che.ide.CoreLocalizationConstant;
 import org.eclipse.che.ide.api.notification.NotificationManager;
 import org.eclipse.che.ide.api.preferences.PreferencesManager;
+import org.eclipse.che.ide.ext.java.client.JavaLocalizationConstant;
+import org.eclipse.che.ide.ext.java.client.settings.service.SettingsServiceClient;
 
+import javax.inject.Singleton;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.eclipse.che.ide.api.notification.StatusNotification.Status.FAIL;
 
 /**
- * The implementation of {@link PreferencesManager} for managing user preference.
+ * The implementation of {@link PreferencesManager} for managing Java compiler properties
  *
- * @author <a href="mailto:aplotnikov@codenvy.com">Andrey Plotnikov</a>
+ * @author Alexander Andrienko
  */
 @Singleton
-public class PreferencesManagerImpl implements PreferencesManager {
-    private final UserProfileServiceClient      userProfileService;
+public class ErrorsWarningsPreferenceManager implements PreferencesManager {
+
+    private final JavaLocalizationConstant      locale;
+    private final SettingsServiceClient         service;
     private final Provider<NotificationManager> notificationManagerProvider;
-    private final CoreLocalizationConstant      locale;
     private final Map<String, String>           changedPreferences;
 
     private Map<String, String> persistedPreferences;
 
-    /**
-     * Create preferences manager
-     *
-     * @param userProfileService
-     *         user preference service client
-     * @param notificationManagerProvider
-     *         notification manager provider
-     * @param locale
-     *         core localization constant
-     */
     @Inject
-    protected PreferencesManagerImpl(UserProfileServiceClient userProfileService,
-                                     Provider<NotificationManager> notificationManagerProvider,
-                                     CoreLocalizationConstant locale) {
-        this.userProfileService = userProfileService;
-        this.notificationManagerProvider = notificationManagerProvider;
+    protected ErrorsWarningsPreferenceManager(Provider<NotificationManager> notificationManager,
+                                              SettingsServiceClient service,
+                                              JavaLocalizationConstant locale) {
         this.locale = locale;
+        this.service = service;
+        this.notificationManagerProvider = notificationManager;
 
         this.persistedPreferences = new HashMap<>();
         this.changedPreferences = new HashMap<>();
+
+        loadPreferences();
     }
 
-    /** {@inheritDoc} */
     @Override
     @Nullable
     public String getValue(String preference) {
@@ -78,37 +70,34 @@ public class PreferencesManagerImpl implements PreferencesManager {
         return persistedPreferences.get(preference);
     }
 
-    /** {@inheritDoc} */
     @Override
     public void setValue(String preference, String value) {
         changedPreferences.put(preference, value);
     }
 
-    /** {@inheritDoc} */
     @Override
     public Promise<Map<String, String>> flushPreferences() {
         if (changedPreferences.isEmpty()) {
             return Promises.resolve(null);
         }
 
-        return userProfileService.updatePreferences(changedPreferences).then(new Operation<Map<String, String>>() {
+        return service.applyCompileParameters(changedPreferences).then(new Operation<Map<String, String>>() {
             @Override
-            public void apply(Map<String, String> result) throws OperationException {
+            public void apply(Map<String, String> arg) throws OperationException {
                 persistedPreferences.putAll(changedPreferences);
                 changedPreferences.clear();
             }
         }).catchError(new Operation<PromiseError>() {
             @Override
             public void apply(PromiseError arg) throws OperationException {
-                notificationManagerProvider.get().notify(locale.unableToSaveUserPreference(), FAIL, true);
+                notificationManagerProvider.get().notify(locale.unableToSaveJavaCompilerErrorsWarningsSettings(), FAIL, true);
             }
         });
     }
 
-    /** {@inheritDoc} */
     @Override
     public Promise<Map<String, String>> loadPreferences() {
-        return userProfileService.getPreferences().then(new Function<Map<String, String>, Map<String, String>>() {
+        return service.getCompileParameters().then(new Function<Map<String, String>, Map<String, String>>() {
             @Override
             public Map<String, String> apply(Map<String, String> properties) throws FunctionException {
                 persistedPreferences = properties;
@@ -117,7 +106,7 @@ public class PreferencesManagerImpl implements PreferencesManager {
         }).catchError(new Operation<PromiseError>() {
             @Override
             public void apply(PromiseError arg) throws OperationException {
-                notificationManagerProvider.get().notify(locale.unableToLoadUserPreference(), FAIL, true);
+                notificationManagerProvider.get().notify(locale.unableToLoadJavaCompilerErrorsWarningsSettings(), FAIL, true);
             }
         });
     }

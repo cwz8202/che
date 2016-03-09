@@ -32,7 +32,7 @@ public interface SettingsServiceClient {
      *         parameters which will be applied
      * @return an instance of {@link Promise} which contains response.
      */
-    Promise<Void> applyCompileParameters(@NotNull Map<String, String> parameters);
+    Promise<Map<String, String>> applyCompileParameters(@NotNull Map<String, String> parameters);
 
     /**
      * Sends special request to CompilerService to get all compiler parameters.

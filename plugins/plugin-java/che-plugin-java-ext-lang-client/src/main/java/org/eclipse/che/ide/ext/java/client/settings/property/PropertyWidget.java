@@ -29,7 +29,9 @@ public interface PropertyWidget extends View<PropertyWidget.ActionDelegate> {
      */
     void selectPropertyValue(@NotNull String value);
 
-    public interface ActionDelegate {
+    String getSelectedValue();
+
+    interface ActionDelegate {
         /**
          * Performs some action when user change value of property.
          *

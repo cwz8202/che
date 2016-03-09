@@ -47,7 +47,6 @@ import org.eclipse.che.ide.actions.RedoAction;
 import org.eclipse.che.ide.actions.RenameItemAction;
 import org.eclipse.che.ide.actions.SaveAction;
 import org.eclipse.che.ide.actions.SaveAllAction;
-import org.eclipse.che.ide.actions.SettingsAction;
 import org.eclipse.che.ide.actions.ShowHiddenFilesAction;
 import org.eclipse.che.ide.actions.ShowPreferencesAction;
 import org.eclipse.che.ide.actions.SwitchLeftTabAction;
@@ -127,9 +126,6 @@ public class StandardComponentInitializer {
 
     @Inject
     private ShowPreferencesAction showPreferencesAction;
-
-    @Inject
-    private SettingsAction settingsAction;
 
     @Inject
     private FindActionAction findActionAction;
@@ -502,9 +498,6 @@ public class StandardComponentInitializer {
 
         actionManager.registerAction("showPreferences", showPreferencesAction);
         helpGroup.add(showPreferencesAction);
-
-        actionManager.registerAction("setupProjectAction", settingsAction);
-        helpGroup.add(settingsAction);
 
         // Compose main context menu
         DefaultActionGroup resourceOperation = new DefaultActionGroup(actionManager);

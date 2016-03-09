@@ -10,6 +10,7 @@
  *******************************************************************************/
 package org.eclipse.che.api.user.gwt.client;
 
+import org.eclipse.che.api.promises.client.Promise;
 import org.eclipse.che.api.user.shared.dto.ProfileDescriptor;
 import org.eclipse.che.ide.rest.AsyncRequestCallback;
 
@@ -48,7 +49,14 @@ public interface UserProfileServiceClient {
      */
     void getProfileById(@NotNull String id, AsyncRequestCallback<ProfileDescriptor> callback);
 
+    /**
+     *
+     *
+     * @param callback
+     */
     void getPreferences(AsyncRequestCallback<Map<String, String>> callback);
+
+    Promise<Map<String, String>> getPreferences();
 
     /**
      * Update profile.
@@ -62,6 +70,7 @@ public interface UserProfileServiceClient {
     void updateProfile(@NotNull String id, Map<String, String> updates, AsyncRequestCallback<ProfileDescriptor> callback);
 
     /**
+     * @deprecated
      * Update preferences.
      *
      * @param prefsToUpdate
@@ -69,4 +78,11 @@ public interface UserProfileServiceClient {
      * @param callback
      */
     void updatePreferences(@NotNull Map<String, String> prefsToUpdate, AsyncRequestCallback<Map<String, String>> callback);
+
+    /**
+     * Update preferences.
+     * @param prefsToUpdate
+     * @return
+     */
+    Promise<Map<String, String>> updatePreferences(@NotNull Map<String, String> prefsToUpdate);
 }

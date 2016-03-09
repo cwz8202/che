@@ -10,16 +10,19 @@
  *******************************************************************************/
 package org.eclipse.che.ide.preferences;
 
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import org.eclipse.che.api.user.gwt.client.UserProfileServiceClient;
+import org.eclipse.che.api.promises.client.Function;
+import org.eclipse.che.api.promises.client.FunctionException;
+import org.eclipse.che.api.promises.client.Operation;
+import org.eclipse.che.api.promises.client.OperationException;
+import org.eclipse.che.api.promises.client.Promise;
+import org.eclipse.che.api.promises.client.PromiseError;
+import org.eclipse.che.api.promises.client.js.Promises;
 import org.eclipse.che.ide.CoreLocalizationConstant;
 import org.eclipse.che.ide.api.preferences.PreferencePagePresenter;
 import org.eclipse.che.ide.api.preferences.PreferencesManager;
-import org.eclipse.che.ide.rest.AsyncRequestCallback;
-import org.eclipse.che.ide.rest.StringMapUnmarshaller;
 import org.eclipse.che.ide.ui.dialogs.CancelCallback;
 import org.eclipse.che.ide.ui.dialogs.ConfirmCallback;
 import org.eclipse.che.ide.ui.dialogs.DialogFactory;
@@ -42,19 +45,19 @@ import java.util.Set;
 @Singleton
 public class PreferencesPresenter implements PreferencesView.ActionDelegate, PreferencePagePresenter.DirtyStateListener {
 
-    private PreferencesView view;
+    private final PreferencesView view;
 
-    private Set<PreferencePagePresenter> preferences;
+    private final Set<PreferencePagePresenter> preferences;
+
+    private final Set<PreferencesManager> managers;
 
     private Map<String, Set<PreferencePagePresenter>> preferencesMap;
 
-    private PreferencesManager preferencesManager;
-
     private DialogFactory dialogFactory;
 
-    private UserProfileServiceClient userProfileService;
-
     private CoreLocalizationConstant locale;
+
+    private boolean saveBtnIsEnabled;
 
     /**
      * Create presenter.
@@ -63,23 +66,21 @@ public class PreferencesPresenter implements PreferencesView.ActionDelegate, Pre
      *
      * @param view
      * @param preferences
-     * @param preferencesManager
      * @param dialogFactory
-     * @param userProfileService
+     * @param locale
+     * @param managers
      */
     @Inject
     protected PreferencesPresenter(PreferencesView view,
                                    Set<PreferencePagePresenter> preferences,
-                                   PreferencesManager preferencesManager,
                                    DialogFactory dialogFactory,
-                                   UserProfileServiceClient userProfileService,
-                                   CoreLocalizationConstant locale) {
+                                   CoreLocalizationConstant locale,
+                                   Set<PreferencesManager> managers) {
         this.view = view;
         this.preferences = preferences;
-        this.preferencesManager = preferencesManager;
         this.dialogFactory = dialogFactory;
-        this.userProfileService = userProfileService;
         this.locale = locale;
+        this.managers = managers;
         this.view.setDelegate(this);
         for (PreferencePagePresenter preference : preferences) {
             preference.setUpdateDelegate(this);
@@ -130,60 +131,58 @@ public class PreferencesPresenter implements PreferencesView.ActionDelegate, Pre
 
     @Override
     public void onSaveClicked() {
-        try {
-            for (PreferencePagePresenter preference : preferences) {
-                if (preference.isDirty()) {
-                    preference.storeChanges();
-                }
+        for (PreferencePagePresenter preference : preferences) {
+            if (preference.isDirty()) {
+                preference.storeChanges();
             }
+        }
 
-            preferencesManager.flushPreferences(new AsyncCallback<Map<String, String>>() {
+        final Promise<Map<String, String>> promise = Promises.resolve(null);
+        for (final PreferencesManager preferencesManager : managers) {
+            promise.thenPromise(new Function<Map<String, String>, Promise<Map<String, String>>>() {
                 @Override
-                public void onSuccess(Map<String, String> result) {
-                    view.enableSaveButton(false);
-                }
-
-                @Override
-                public void onFailure(Throwable error) {
-                    dialogFactory.createMessageDialog("", "Unable to save preferences", null).show();
+                public Promise<Map<String, String>> apply(Map<String, String> arg) throws FunctionException {
+                    return preferencesManager.flushPreferences().catchError(new Operation<PromiseError>() {
+                        @Override
+                        public void apply(PromiseError arg) throws OperationException {
+                            saveBtnIsEnabled = true;
+                        }
+                    });
                 }
             });
-        } catch (Throwable error) {
-            dialogFactory.createMessageDialog("", "Unable to save preferences", null).show();
         }
+
+        promise.then(new Operation<Map<String, String>>() {
+            @Override
+            public void apply(Map<String, String> prefs) throws OperationException {
+                view.enableSaveButton(saveBtnIsEnabled);
+            }
+        });
     }
 
     @Override
     public void onRefreshClicked() {
-        try {
-            userProfileService.getPreferences(new AsyncRequestCallback<Map<String, String>>(new StringMapUnmarshaller()) {
+        final Promise<Map<String, String>> promise = Promises.resolve(null);
+        for (final PreferencesManager preferencesManager : managers) {
+            promise.thenPromise(new Function<Map<String, String>, Promise<Map<String, String>>>() {
                 @Override
-                protected void onSuccess(Map<String, String> preferences) {
-                    /**
-                     * Reload preferences by Preferences Manager
-                     */
-                    if (preferencesManager instanceof PreferencesManagerImpl) {
-                        ((PreferencesManagerImpl)preferencesManager).load(preferences);
-                    }
-
-                    /**
-                     * Revert changes on every preference page
-                     */
-                    for (PreferencePagePresenter p : PreferencesPresenter.this.preferences) {
-                        p.revertChanges();
-                    }
-                }
-
-                @Override
-                protected void onFailure(Throwable exception) {
-                    dialogFactory.createMessageDialog("", "Unable to refresh preferences", null).show();
+                public Promise<Map<String, String>> apply(Map<String, String> arg) throws FunctionException {
+                    return preferencesManager.loadPreferences();
                 }
             });
-
-        } catch (Throwable error) {
-            dialogFactory.createMessageDialog("", "Unable to refresh preferences", null).show();
         }
 
+        /**
+         * Revert changes on every preference page
+         */
+        promise.then(new Operation<Map<String, String>>() {
+            @Override
+            public void apply(Map<String, String> arg) throws OperationException {
+                for (PreferencePagePresenter p : PreferencesPresenter.this.preferences) {
+                    p.revertChanges();
+                }
+            }
+        });
     }
 
     /** {@inheritDoc} */

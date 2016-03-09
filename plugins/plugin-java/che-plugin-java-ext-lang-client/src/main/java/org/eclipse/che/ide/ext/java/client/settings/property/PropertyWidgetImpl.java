@@ -80,7 +80,7 @@ public class PropertyWidgetImpl extends Composite implements PropertyWidget {
         delegate.onPropertyChanged(optionId.toString(), selectedValue);
     }
 
-    private String getSelectedValue() {
+    public String getSelectedValue() {
         int index = property.getSelectedIndex();
 
         return index != -1 ? property.getValue(index) : "";

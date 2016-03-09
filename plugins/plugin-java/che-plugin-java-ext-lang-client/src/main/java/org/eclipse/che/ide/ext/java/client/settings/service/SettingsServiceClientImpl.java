@@ -10,15 +10,12 @@
  *******************************************************************************/
 package org.eclipse.che.ide.ext.java.client.settings.service;
 
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
 import org.eclipse.che.api.promises.client.Promise;
-import org.eclipse.che.api.promises.client.callback.AsyncPromiseHelper;
 import org.eclipse.che.ide.api.app.AppContext;
 import org.eclipse.che.ide.api.app.CurrentProject;
-import org.eclipse.che.ide.dto.JsonSerializable;
 import org.eclipse.che.ide.json.JsonHelper;
 import org.eclipse.che.ide.rest.AsyncRequestFactory;
 import org.eclipse.che.ide.rest.StringMapUnmarshaller;
@@ -26,8 +23,6 @@ import org.eclipse.che.ide.rest.StringMapUnmarshaller;
 import javax.validation.constraints.NotNull;
 import java.util.Map;
 
-import static org.eclipse.che.api.promises.client.callback.PromiseHelper.newCallback;
-import static org.eclipse.che.api.promises.client.callback.PromiseHelper.newPromise;
 import static org.eclipse.che.ide.MimeType.APPLICATION_JSON;
 import static org.eclipse.che.ide.rest.HTTPHeader.ACCEPT;
 import static org.eclipse.che.ide.rest.HTTPHeader.CONTENT_TYPE;
@@ -64,43 +59,24 @@ public class SettingsServiceClientImpl implements SettingsServiceClient {
 
     /** {@inheritDoc} */
     @Override
-    public Promise<Void> applyCompileParameters(@NotNull final Map<String, String> parameters) {
-        final String pathToProject = getPathToProject();
+    public Promise<Map<String, String>> applyCompileParameters(@NotNull final Map<String, String> parameters) {
+        String url = extPath  + "/jdt/" + workspaceId + "/compiler-settings/set?projectpath=" + getPathToProject();
+        final String data = JsonHelper.toJson(parameters);
 
-        return newPromise(new AsyncPromiseHelper.RequestCall<Void>() {
-            @Override
-            public void makeCall(AsyncCallback<Void> callback) {
-                String url = extPath  + "/jdt/" + workspaceId + "/compiler-settings/set?projectpath=" + pathToProject;
-
-                JsonSerializable data = new JsonSerializable() {
-                    @Override
-                    public String toJson() {
-                        return JsonHelper.toJson(parameters);
-                    }
-                };
-
-                asyncRequestFactory.createPostRequest(url, data)
-                                   .header(ACCEPT, APPLICATION_JSON)
-                                   .header(CONTENT_TYPE, APPLICATION_JSON)
-                                   .send(newCallback(callback));
-            }
-        });
+        return asyncRequestFactory.createPostRequest(url, null)//todo maybe data?
+                           .header(ACCEPT, APPLICATION_JSON)
+                           .header(CONTENT_TYPE, APPLICATION_JSON)
+                           .data(data)
+                           .send(new StringMapUnmarshaller());
     }
 
     /** {@inheritDoc} */
     @Override
     public Promise<Map<String, String>> getCompileParameters() {
-        final String pathToProject = getPathToProject();
+        String url = extPath  + "/jdt/" + workspaceId + "/compiler-settings/all?projectpath=" + getPathToProject() ;
 
-        return newPromise(new AsyncPromiseHelper.RequestCall<Map<String, String>>() {
-            @Override
-            public void makeCall(AsyncCallback<Map<String, String>> callback) {
-                String url = extPath  + "/jdt/" + workspaceId + "/compiler-settings/all?projectpath=" + pathToProject;
-
-                asyncRequestFactory.createGetRequest(url)
+        return asyncRequestFactory.createGetRequest(url)
                                    .header(ACCEPT, APPLICATION_JSON)
-                                   .send(newCallback(callback, new StringMapUnmarshaller()));
-            }
-        });
+                                   .send(new StringMapUnmarshaller());
     }
 }

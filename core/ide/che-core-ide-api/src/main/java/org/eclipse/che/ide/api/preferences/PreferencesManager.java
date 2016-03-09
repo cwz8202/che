@@ -10,7 +10,8 @@
  *******************************************************************************/
 package org.eclipse.che.ide.api.preferences;
 
-import com.google.gwt.user.client.rpc.AsyncCallback;
+import org.eclipse.che.api.promises.client.Promise;
+import org.eclipse.che.commons.annotation.Nullable;
 
 import java.util.Map;
 
@@ -29,7 +30,7 @@ public interface PreferencesManager {
      *         the preference's name whose associated value will be returned
      * @return preference's value
      */
-    String getValue(String preference);
+    @Nullable String getValue(String preference);
 
     /**
      * Associates the preference's value with the preference's name.
@@ -43,9 +44,17 @@ public interface PreferencesManager {
     void setValue(String preference, String value);
 
     /**
-     * Persists preferences by passing it to the server side.
+     * Persists preferences by passing it to the server side and create notification in case error
      *
-     * @param callback
+     * @return
+     *
      */
-    void flushPreferences(AsyncCallback<Map<String, String>> callback);
+    Promise<Map<String, String>> flushPreferences();
+
+    /**
+     * Load preference from server and create notification in case error
+     *
+     * @return
+     */
+    Promise<Map<String, String>> loadPreferences();
 }
